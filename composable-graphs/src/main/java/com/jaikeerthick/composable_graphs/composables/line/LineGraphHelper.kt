@@ -74,7 +74,11 @@ internal class LineGraphHelper(
                 yAxisData.distinct().size - 1
             else
                 yAxisData.distinct().size
-        val verticalStep = absMaxY.toInt() / numberOfVerticalSteps.toFloat()
+        val verticalStep = 
+            if (numberOfVerticalSteps == 0) // prevent division by 0
+                0
+            else
+                absMaxY.toInt() / numberOfVerticalSteps.toFloat()
 
         // generate y axis label
         val yAxisLabelList = mutableListOf<String>()
