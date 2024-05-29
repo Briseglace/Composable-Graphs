@@ -17,6 +17,7 @@ import com.jaikeerthick.composable_graphs.util.GraphHelper
 import com.jaikeerthick.composable_graphs.style.LabelPosition
 import com.jaikeerthick.composable_graphs.composables.line.style.LineGraphStyle
 import com.jaikeerthick.composable_graphs.util.logDebug
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 internal data class LineGraphMetrics(
@@ -28,7 +29,7 @@ internal data class LineGraphMetrics(
     val yItemSpacing: Float,
     val maxPointsSize: Int,
     val yAxisData: List<Number>,
-    val xAxisData: List<String>,
+    val xAxisLabels: List<String>,
     val yAxisLabels: List<String>,
     val offsetList: List<Offset>,
 )
@@ -68,8 +69,8 @@ internal class LineGraphHelper(
         val absMinY = 0
 
         // prevent duplication of y labels when yAxisData list has same values
-        val numberOfVerticalSteps =
-            if (yAxisData.contains(0))
+        val numberOfVerticalSteps = style.yAxisNumberOfLabels
+            ?: if (yAxisData.contains(0))
                 yAxisData.distinct().size - 1
             else
                 yAxisData.distinct().size
@@ -84,6 +85,23 @@ internal class LineGraphHelper(
             yAxisLabelList.add(intervalValue.toString())
         }
 
+        // blanks labels evenly according to the requested number of labels
+        val xAxisLabelList = buildList {
+            val numberOfXLabels = min(style.xAxisNumberOfLabels ?: maxPointsSize, maxPointsSize)
+
+            // determine which labels to take using a 1D version of Bresenham's algorithm
+            val indicesToTake = buildList {
+                (0 until numberOfXLabels).forEach {
+                    this.add(it * maxPointsSize / numberOfXLabels + maxPointsSize / (2 * numberOfXLabels))
+                }
+            }
+            xAxisData.forEachIndexed { index, xData ->
+                if (index in indicesToTake)
+                    this.add(xData)
+                else
+                    this.add("")
+            }
+        }
 
         val xItemSpacing = if (style.yAxisLabelPosition == LabelPosition.RIGHT){
             gridWidth / (maxPointsSize - 1)
@@ -114,7 +132,7 @@ internal class LineGraphHelper(
             yItemSpacing = yItemSpacing,
             maxPointsSize = maxPointsSize,
             yAxisData = yAxisData,
-            xAxisData = xAxisData,
+            xAxisLabels = xAxisLabelList,
             yAxisLabels = yAxisLabelList,
             offsetList = offsetList
         )
@@ -257,21 +275,23 @@ internal class LineGraphHelper(
             // Drawing text labels over the x- axis
             if (style.visibility.isXAxisLabelVisible) {
 
-                for (i in 0 until metrics.maxPointsSize) {
+                for (i in 0 until metrics.xAxisLabels.size) {
 
                     val labelXOffset =
                         if (style.yAxisLabelPosition == LabelPosition.RIGHT) metrics.xItemSpacing * (i) else (metrics.xItemSpacing * (i)) + metrics.yAxisPadding.toPx()
 
-                    drawContext.canvas.nativeCanvas.drawText(
-                        metrics.xAxisData[i],
-                        labelXOffset, // x
-                        size.height, // y
-                        Paint().apply {
-                            color = this@LineGraphHelper.style.colors.xAxisTextColor.toArgb()
-                            textAlign = Paint.Align.CENTER
-                            textSize = 12.sp.toPx()
-                        }
-                    )
+                    if (metrics.xAxisLabels[i].isNotBlank()) {
+                        drawContext.canvas.nativeCanvas.drawText(
+                            metrics.xAxisLabels[i],
+                            labelXOffset, // x
+                            size.height, // y
+                            Paint().apply {
+                                color = this@LineGraphHelper.style.colors.xAxisTextColor.toArgb()
+                                textAlign = Paint.Align.CENTER
+                                textSize = 12.sp.toPx()
+                            }
+                        )
+                    }
                 }
             }
 

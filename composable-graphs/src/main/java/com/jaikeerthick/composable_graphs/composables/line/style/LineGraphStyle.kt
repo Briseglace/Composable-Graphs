@@ -6,7 +6,9 @@ import com.jaikeerthick.composable_graphs.style.LabelPosition
 data class LineGraphStyle(
     val colors: LineGraphColors = LineGraphColors(),
     val visibility: LineGraphVisibility = LineGraphVisibility(),
-    val yAxisLabelPosition: LabelPosition = LabelPosition.RIGHT
+    val yAxisLabelPosition: LabelPosition = LabelPosition.RIGHT,
+    val xAxisNumberOfLabels: Int? = null,
+    val yAxisNumberOfLabels: Int? = null
 )
 
 
