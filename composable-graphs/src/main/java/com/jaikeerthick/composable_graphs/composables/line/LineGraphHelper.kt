@@ -76,7 +76,7 @@ internal class LineGraphHelper(
                 yAxisData.distinct().size
         val verticalStep = 
             if (numberOfVerticalSteps == 0) // prevent division by 0
-                0
+                0F
             else
                 absMaxY.toInt() / numberOfVerticalSteps.toFloat()
 
@@ -156,11 +156,17 @@ internal class LineGraphHelper(
                     val labelXOffset =
                         if (style.yAxisLabelPosition == LabelPosition.RIGHT) metrics.xItemSpacing * (i) else (metrics.xItemSpacing * (i)) + metrics.yAxisPadding.toPx()
 
-                    drawLine(
-                        color = Color.LightGray,
-                        start = Offset(labelXOffset, 0f),
-                        end = Offset(labelXOffset, metrics.gridHeight),
-                    )
+                    if (!style.visibility.isXGridVisibleOnlyOnLabels // draw every lines
+                        || metrics.xAxisLabels[i].isNotBlank() // draw if there's a label
+                        || i == 0 // always draw first line
+                        || i == metrics.maxPointsSize - 1 // always draw last line
+                    ) {
+                        drawLine(
+                            color = Color.LightGray,
+                            start = Offset(labelXOffset, 0f),
+                            end = Offset(labelXOffset, metrics.gridHeight),
+                        )
+                    }
                 }
 
                 for (i in 0 until metrics.yAxisLabels.size) {

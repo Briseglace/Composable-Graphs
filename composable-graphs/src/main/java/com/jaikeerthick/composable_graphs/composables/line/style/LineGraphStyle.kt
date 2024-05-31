@@ -17,4 +17,5 @@ data class LineGraphVisibility(
     val isYAxisLabelVisible: Boolean = false,
     val isXAxisLabelVisible: Boolean = true,
     val isGridVisible: Boolean = false,
+    val isXGridVisibleOnlyOnLabels: Boolean = false
 )
